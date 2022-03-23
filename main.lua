@@ -12,7 +12,7 @@ function love.load()
 
     player = {}
     
-    player.collider = World:newBSGRectangleCollider(400,250, 40 , 80, 14)
+    player.collider = World:newBSGRectangleCollider(400,250, 40 , 60, 3)
     player.collider:setFixedRotation(true)
     player.x = 400
     player.y = 200
@@ -29,6 +29,15 @@ function love.load()
 
     player.anim = player.animations.left
 
+    walls = {}
+
+    if TheMap.layers["Walls"] then
+        for i, obj in pairs(TheMap.layers["Walls"].objects) do 
+            local wall = World:newRectangleCollider(obj.x, obj.y ,obj.width,obj.height)
+            wall:setType('static')
+            table.insert(walls, wall)
+        end
+    end
 end
 
  function love.update(dt)
@@ -103,10 +112,11 @@ end
 
  function love.draw()
     cam:attach()
-        TheMap:drawLayer(TheMap.layers["Grass"])
+        TheMap:drawLayer(TheMap.layers["Floor"])
         player.anim:draw(player.spritesheet, player.x, player.y, nil, 3, nil, 6, 9)
         TheMap:drawLayer(TheMap.layers["Plants"])
         TheMap:drawLayer(TheMap.layers["Props"])
+        TheMap:drawLayer(TheMap.layers["Bulidings"])
         World:draw()
     cam:detach()
     
