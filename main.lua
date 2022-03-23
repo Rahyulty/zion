@@ -1,8 +1,10 @@
 function love.load()
+    windF = require 'libaries.windfield'
     animationModule = require "libaries.anim8"
     MapHandler = require "libaries.sti"
     cameraHandler = require "libaries.camera"
 
+    World = windF.newWorld(0, 0)
 
     love.graphics.setDefaultFilter("nearest", "nearest")
     TheMap = MapHandler('maps/map.lua')
@@ -10,13 +12,15 @@ function love.load()
 
     player = {}
     
+    player.collider = World:newBSGRectangleCollider(400,250, 40 , 80, 14)
+    player.collider:setFixedRotation(true)
     player.x = 400
     player.y = 200
-    player.speed = 3.5
+    player.speed = 250
     player.spritesheet = love.graphics.newImage('sprites/player-sheet.png')
     player.grid = animationModule.newGrid( 12, 18, player.spritesheet:getWidth(), player.spritesheet:getHeight() )
     
-    AnimationTime = 0.1
+    AnimationTime = 0.25
     player.animations = {}
     player.animations.down = animationModule.newAnimation( player.grid('1-4', 1), AnimationTime)
     player.animations.left = animationModule.newAnimation( player.grid('1-4', 2), AnimationTime)
@@ -29,32 +33,42 @@ end
 
  function love.update(dt)
     local isMoving = false
+    
+    local vx = 0 
+    local vy = 0 
+
 
     if love.keyboard.isDown("right") then 
-        player.x = player.x + player.speed
+        vx =  player.speed
         player.anim = player.animations.right
         isMoving = true
     end
     if love.keyboard.isDown("left") then 
-        player.x = player.x - player.speed
+        vx =  player.speed * -1
         player.anim = player.animations.left
         isMoving = true
     end
     if love.keyboard.isDown("down") then 
-        player.y = player.y + player.speed
+       vy =  player.speed
         player.anim = player.animations.down
         isMoving = true
     end
     if love.keyboard.isDown("up") then 
-        player.y = player.y - player.speed
+        vy =  player.speed * -1
         player.anim = player.animations.up
         isMoving = true
     end
+
+    player.collider:setLinearVelocity(vx,vy)
 
     if isMoving == false then 
         player.anim:gotoFrame(2)
     
     end
+
+    World:update(dt)
+    player.x = player.collider:getX()
+    player.y = player.collider:getY()
 
     player.anim:update(dt)
     cam:lookAt(player.x , player.y)
@@ -83,6 +97,8 @@ end
         cam.y = (mh - h / 2)
     end
 
+
+
  end
 
  function love.draw()
@@ -91,6 +107,7 @@ end
         player.anim:draw(player.spritesheet, player.x, player.y, nil, 3, nil, 6, 9)
         TheMap:drawLayer(TheMap.layers["Plants"])
         TheMap:drawLayer(TheMap.layers["Props"])
+        World:draw()
     cam:detach()
     
 
